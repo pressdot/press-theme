@@ -1,0 +1,110 @@
+/*
+Theme Name: Press Theme
+Theme URI: https://example.com/press-theme
+Author: Antigravity
+Author URI: https://example.com
+Description: A modern, responsive WordPress theme with PJAX and Dark Mode, based on the "Press" design.
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: press-theme
+*/
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1e293b; 
+}
+::-webkit-scrollbar-thumb {
+    background: #475569; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #64748b; 
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    background-color: #0f172a;
+    color: white;
+    height: 32px;
+    line-height: 32px;
+}
+.ticker {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 30s linear infinite;
+}
+@keyframes ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* WP Content Styles Simulation */
+.entry-content h2 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.025em;
+}
+.entry-content h3 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+.entry-content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+.entry-content ul {
+    list-style-type: disc;
+    padding-left: 1.625rem;
+    margin-bottom: 1.5rem;
+}
+.entry-content li {
+    margin-bottom: 0.5rem;
+}
+.entry-content blockquote {
+    font-style: italic;
+    border-left-width: 4px;
+    padding-left: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+.entry-content pre {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    overflow-x: auto;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.875rem;
+}
+
+/* Barba Transitions */
+.barba-container {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+body.is-transitioning .barba-container {
+    opacity: 0;
+}
