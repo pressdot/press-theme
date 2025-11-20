@@ -4,13 +4,12 @@
         <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-r from-brand-600 to-purple-600"></div>
         <div class="relative flex flex-col items-center mt-4">
             <div class="w-20 h-20 rounded-full border-4 border-white dark:border-slate-800 bg-slate-200 overflow-hidden shadow-lg">
-                <img src="https://ui-avatars.com/api/?name=Admin&background=0ea5e9&color=fff&size=128" alt="Author">
+                <?php echo get_avatar(get_the_author_meta('ID'), 128, '', '', array('class' => 'w-full h-full object-cover')); ?>
             </div>
-            <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-3"><?php the_author_meta('display_name', 1); ?></h3>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-3"><?php the_author(); ?></h3>
             <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">全栈开发者 / 币圈老韭菜</p>
             <p class="text-center text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6">
-                已在风雨中度过 <span class="font-mono text-brand-500">4111</span> 天。
-                热衷于折腾 C#、Linux 和寻找下一个百倍币。
+                <?php echo get_the_author_meta('description') ? get_the_author_meta('description') : 'Exploring the world of code and crypto.'; ?>
             </p>
             <div class="flex space-x-4">
                 <a href="#" class="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand-500 hover:text-white transition"><i class="fab fa-github"></i></a>
@@ -36,15 +35,34 @@
         </div>
     </div>
 
-    <!-- Tags Cloud -->
+    <!-- Popular Posts Widget -->
     <div class="mt-8 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-        <h3 class="font-bold text-slate-900 dark:text-white mb-4 border-l-4 border-brand-500 pl-3">热门标签</h3>
-        <div class="flex flex-wrap gap-2">
+        <h3 class="font-bold text-slate-900 dark:text-white mb-4 border-l-4 border-brand-500 pl-3">热门文章</h3>
+        <div class="space-y-4">
             <?php
-            $tags = get_tags(array('number' => 10, 'orderby' => 'count', 'order' => 'DESC'));
-            foreach($tags as $tag) {
-                echo '<a href="' . get_tag_link($tag->term_id) . '" class="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-brand-500 hover:text-white transition">#' . $tag->name . '</a>';
-            }
+            $popular = new WP_Query(array(
+                'posts_per_page' => 5,
+                'meta_key' => 'views',
+                'orderby' => 'meta_value_num',
+                'order' => 'DESC',
+                'ignore_sticky_posts' => 1
+            ));
+            if ($popular->have_posts()) :
+                while ($popular->have_posts()) : $popular->the_post();
+            ?>
+            <a href="<?php the_permalink(); ?>" class="flex gap-3 group">
+                <span class="text-2xl font-bold text-slate-200 dark:text-slate-700 group-hover:text-brand-500 transition">0<?php echo $popular->current_post + 1; ?></span>
+                <div>
+                    <h4 class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-brand-500 transition line-clamp-2"><?php the_title(); ?></h4>
+                    <span class="text-xs text-slate-400 mt-1 block"><i class="far fa-eye mr-1"></i> <?php echo (int) get_post_meta(get_the_ID(), 'views', true); ?></span>
+                </div>
+            </a>
+            <?php
+                endwhile;
+                wp_reset_postdata();
+            else:
+                echo '<p class="text-sm text-slate-500">暂无热门文章</p>';
+            endif;
             ?>
         </div>
     </div>

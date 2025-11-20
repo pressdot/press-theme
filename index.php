@@ -11,16 +11,15 @@
         'ignore_sticky_posts' => 1
     );
     $hero_query = new WP_Query($args);
+    
     if ($hero_query->have_posts() && !empty($sticky)) :
         while ($hero_query->have_posts()) : $hero_query->the_post();
-            $thumb_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
-            if (!$thumb_url) $thumb_url = press_get_random_svg();
+            $thumb_url = press_get_post_thumbnail_url(get_the_ID(), 'full');
     ?>
     <div class="relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div class="absolute inset-0">
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent z-10"></div>
-            <!-- Placeholder gradient/image -->
-            <div class="w-full h-full bg-cover bg-center opacity-40" style="background-image: url('<?php echo esc_url($thumb_url); ?>');"></div>
+            <div class="w-full h-full bg-cover bg-center opacity-40" style="background-image: url('<?php echo esc_attr($thumb_url); ?>');"></div>
         </div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 py-20 sm:py-24">
             <div class="lg:w-2/3">
@@ -37,9 +36,6 @@
                     <a href="<?php the_permalink(); ?>" class="bg-white text-slate-900 hover:bg-slate-100 px-6 py-3 rounded-lg font-semibold transition flex items-center cursor-pointer">
                         阅读全文 <i class="fas fa-arrow-right ml-2 text-sm"></i>
                     </a>
-                    <a href="#" class="px-6 py-3 rounded-lg font-semibold text-white border border-slate-500 hover:bg-slate-800/50 transition backdrop-blur-sm">
-                        查看所有年终总结
-                    </a>
                 </div>
             </div>
         </div>
@@ -47,6 +43,29 @@
     <?php
         endwhile;
         wp_reset_postdata();
+    else :
+        // Customizer Fallback
+        $hero_bg = get_theme_mod('press_hero_image', press_get_random_svg());
+        $hero_title = get_theme_mod('press_hero_title', 'Welcome to Press.gy');
+        $hero_text = get_theme_mod('press_hero_text', 'Exploring the future of tech and finance.');
+    ?>
+    <div class="relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent z-10"></div>
+            <div class="w-full h-full bg-cover bg-center opacity-40" style="background-image: url('<?php echo esc_attr($hero_bg); ?>');"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 py-20 sm:py-24">
+            <div class="lg:w-2/3">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+                    <?php echo esc_html($hero_title); ?>
+                </h1>
+                <div class="text-lg text-slate-300 mb-8 max-w-2xl leading-relaxed">
+                    <?php echo esc_html($hero_text); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
     endif;
     ?>
 
@@ -67,14 +86,13 @@
                 <?php
                 if (have_posts()) :
                     while (have_posts()) : the_post();
-                        $thumb_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
-                        if (!$thumb_url) $thumb_url = press_get_random_svg();
+                        $thumb_url = press_get_post_thumbnail_url(get_the_ID(), 'large');
                 ?>
                 <!-- Article Card -->
-                <article class="group bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-xl transition duration-300 border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col sm:flex-row">
+                <article class="card-hover-effect group bg-white dark:bg-slate-800 rounded-2xl shadow-sm transition duration-300 border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col sm:flex-row">
                     <div class="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden">
                             <div class="absolute inset-0 bg-indigo-900/20 group-hover:bg-transparent transition z-10"></div>
-                            <img src="<?php echo esc_url($thumb_url); ?>" alt="<?php the_title(); ?>" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
+                            <img src="<?php echo esc_attr($thumb_url); ?>" alt="<?php the_title(); ?>" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
                     <div class="p-6 sm:w-2/3 flex flex-col justify-between">
                         <div>

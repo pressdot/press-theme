@@ -33,6 +33,15 @@ function press_theme_setup() {
 }
 add_action('after_setup_theme', 'press_theme_setup');
 
+// Fix for wp_nav_menu add_li_class argument
+function press_nav_menu_css_class($classes, $item, $args) {
+    if (isset($args->add_li_class)) {
+        $classes[] = $args->add_li_class;
+    }
+    return $classes;
+}
+add_filter('nav_menu_css_class', 'press_nav_menu_css_class', 1, 3);
+
 function press_widgets_init() {
     register_sidebar(array(
         'name'          => __('Main Sidebar', 'press-theme'),
@@ -93,19 +102,105 @@ function press_theme_comment($comment, $args, $depth) {
     <?php
 }
 
+// Navigation Fallback
+function press_nav_menu_fallback($args) {
+    $class = 'text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium px-3 py-2 transition';
+    echo '<li class="' . $class . '"><a href="' . home_url() . '">首页</a></li>';
+}
+
 function press_get_random_svg() {
-    $colors = array('#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6');
-    $bg_color = $colors[array_rand($colors)];
-    $shape_color = $colors[array_rand($colors)];
+    // Tech/Finance Theme Colors
+    $bg_colors = array('#0f172a', '#1e293b', '#172554', '#022c22'); // Dark Slate, Blue, Green
+    $line_colors = array('#0ea5e9', '#10b981', '#6366f1', '#f59e0b'); // Sky, Emerald, Indigo, Amber
     
-    // Simple geometric pattern
+    $bg = $bg_colors[array_rand($bg_colors)];
+    $line = $line_colors[array_rand($line_colors)];
+    
+    // Generate a random "chart" line
+    $points = "0," . rand(300, 500);
+    $step = 800 / 5;
+    for ($i = 1; $i <= 5; $i++) {
+        $points .= " " . ($i * $step) . "," . rand(100, 500);
+    }
+    
     $svg = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="' . $bg_color . '"/>
-        <circle cx="' . rand(100, 700) . '" cy="' . rand(100, 500) . '" r="' . rand(50, 300) . '" fill="' . $shape_color . '" fill-opacity="0.2"/>
-        <rect x="' . rand(0, 600) . '" y="' . rand(0, 400) . '" width="' . rand(100, 400) . '" height="' . rand(100, 400) . '" fill="white" fill-opacity="0.1" transform="rotate(' . rand(0, 90) . ' ' . rand(300, 500) . ' ' . rand(200, 400) . ')"/>
-        <text x="50%" y="50%" font-family="sans-serif" font-size="40" fill="white" fill-opacity="0.3" text-anchor="middle" dominant-baseline="middle">Press.</text>
+        <rect width="100%" height="100%" fill="' . $bg . '"/>
+        <!-- Grid Lines -->
+        <path d="M0 100 H800 M0 200 H800 M0 300 H800 M0 400 H800 M0 500 H800" stroke="white" stroke-opacity="0.05" stroke-width="1"/>
+        <path d="M100 0 V600 M200 0 V600 M300 0 V600 M400 0 V600 M500 0 V600 M600 0 V600 M700 0 V600" stroke="white" stroke-opacity="0.05" stroke-width="1"/>
+        
+        <!-- Chart Line -->
+        <polyline points="' . $points . '" fill="none" stroke="' . $line . '" stroke-width="4" stroke-opacity="0.8"/>
+        
+        <!-- Area under curve (simplified) -->
+        <polygon points="0,600 ' . $points . ' 800,600" fill="' . $line . '" fill-opacity="0.1"/>
+        
+        <text x="40" y="560" font-family="monospace" font-size="24" fill="white" fill-opacity="0.4">PRESS.GY ANALYTICS</text>
     </svg>';
     
     return 'data:image/svg+xml;base64,' . base64_encode($svg);
 }
 
+// Customizer Settings
+function press_customize_register($wp_customize) {
+    $wp_customize->add_section('press_hero_section', array(
+        'title' => __('Homepage Hero', 'press-theme'),
+        'priority' => 30,
+    ));
+
+    // Hero Image
+    $wp_customize->add_setting('press_hero_image');
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'press_hero_image', array(
+        'label' => __('Hero Background Image', 'press-theme'),
+        'section' => 'press_hero_section',
+        'settings' => 'press_hero_image',
+    )));
+
+    // Hero Title
+    $wp_customize->add_setting('press_hero_title', array('default' => 'Welcome to Press.gy'));
+    $wp_customize->add_control('press_hero_title', array(
+        'label' => __('Hero Title', 'press-theme'),
+        'section' => 'press_hero_section',
+        'type' => 'text',
+    ));
+
+    // Hero Text
+    $wp_customize->add_setting('press_hero_text', array('default' => 'Exploring the future of tech and finance.'));
+    $wp_customize->add_control('press_hero_text', array(
+        'label' => __('Hero Text', 'press-theme'),
+        'section' => 'press_hero_section',
+        'type' => 'textarea',
+    ));
+
+    // Default Post Thumbnail
+    $wp_customize->add_section('press_general_section', array(
+        'title' => __('General Settings', 'press-theme'),
+        'priority' => 20,
+    ));
+    $wp_customize->add_setting('press_default_thumbnail');
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'press_default_thumbnail', array(
+        'label' => __('Default Post Thumbnail', 'press-theme'),
+        'description' => __('Used when a post has no featured image.', 'press-theme'),
+        'section' => 'press_general_section',
+        'settings' => 'press_default_thumbnail',
+    )));
+}
+add_action('customize_register', 'press_customize_register');
+
+// Helper: Get Post Thumbnail URL with Fallback
+function press_get_post_thumbnail_url($post_id, $size = 'full') {
+    // 1. Check for Featured Image
+    $thumb_url = get_the_post_thumbnail_url($post_id, $size);
+    
+    // 2. Check for Customizer Default Image
+    if (!$thumb_url) {
+        $thumb_url = get_theme_mod('press_default_thumbnail');
+    }
+    
+    // 3. Fallback to SVG
+    if (!$thumb_url) {
+        $thumb_url = press_get_random_svg();
+    }
+    
+    return $thumb_url;
+}

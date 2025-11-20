@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     // --- Dark Mode Logic ---
     const themeToggleBtn = document.getElementById('theme-toggle');
     const htmlElement = document.documentElement;
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggleBtn.addEventListener('click', () => {
             htmlElement.classList.toggle('dark');
             bodyElement.classList.toggle('dark');
-            
+
             if (htmlElement.classList.contains('dark')) {
                 localStorage.theme = 'dark';
             } else {
@@ -28,58 +28,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Barba.js Logic ---
-    if (typeof barba !== 'undefined') {
+    if (typeof barba !== 'undefined' && typeof gsap !== 'undefined') {
+
         barba.init({
+            debug: true, // Keep debug on to see errors
+            timeout: 5000, // Increase timeout to 5s
             transitions: [{
-                name: 'opacity-transition',
+                name: 'fade',
+                sync: true, // Allow overlapping transitions
                 leave(data) {
-                    return gsap.to(data.current.container, {
-                        opacity: 0,
-                        duration: 0.3
+                    return new Promise(resolve => {
+                        if (!data.current.container) {
+                            resolve();
+                            return;
+                        }
+                        gsap.to(data.current.container, {
+                            opacity: 0,
+                            duration: 0.3,
+                            onComplete: resolve
+                        });
                     });
                 },
                 enter(data) {
-                    return gsap.from(data.next.container, {
-                        opacity: 0,
-                        duration: 0.3
+                    return new Promise(resolve => {
+                        if (!data.next.container) {
+                            resolve();
+                            return;
+                        }
+                        // Ensure the next container is visible but transparent first
+                        gsap.set(data.next.container, { opacity: 0 });
+                        gsap.to(data.next.container, {
+                            opacity: 1,
+                            duration: 0.3,
+                            onComplete: resolve
+                        });
                     });
-                }
-            }],
-            views: [{
-                namespace: 'home',
-                beforeEnter() {
-                    // Re-init scripts if needed for Home
-                }
-            }, {
-                namespace: 'single',
-                beforeEnter() {
-                    // Re-init scripts if needed for Single
                 }
             }]
         });
 
-        // Re-run inline scripts after transition (if any)
-        barba.hooks.after(() => {
-            // Re-bind Dark Mode toggle if it was replaced
-             const newToggleBtn = document.getElementById('theme-toggle');
-             if(newToggleBtn) {
-                 // Remove old listeners to be safe (though DOM is replaced)
-                 newToggleBtn.replaceWith(newToggleBtn.cloneNode(true));
-                 const freshBtn = document.getElementById('theme-toggle');
-                 
-                 freshBtn.addEventListener('click', () => {
-                    htmlElement.classList.toggle('dark');
-                    bodyElement.classList.toggle('dark');
-                    if (htmlElement.classList.contains('dark')) {
-                        localStorage.theme = 'dark';
-                    } else {
-                        localStorage.theme = 'light';
-                    }
-                });
-             }
-             
-             // Scroll to top
-             window.scrollTo({ top: 0, behavior: 'smooth' });
+        // PJAX Loader Hooks
+        barba.hooks.before(() => {
+            document.body.classList.add('is-loading');
         });
+
+        barba.hooks.after(() => {
+            // Small delay to let the new content settle and show animation
+            setTimeout(() => {
+                document.body.classList.remove('is-loading');
+                window.scrollTo(0, 0);
+            }, 600); // Increased delay for visibility
+
+            // Re-bind Dark Mode toggle if it was replaced
+            const newToggleBtn = document.getElementById('theme-toggle');
+            if (newToggleBtn) {
+                // Clone to remove old listeners
+                const freshBtn = newToggleBtn.cloneNode(true);
+                newToggleBtn.parentNode.replaceChild(freshBtn, newToggleBtn);
+
+                freshBtn.addEventListener('click', () => {
+                    const html = document.documentElement;
+                    const body = document.body;
+                    html.classList.toggle('dark');
+                    body.classList.toggle('dark');
+                    localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+                });
+            }
+        });
+    } else {
+        console.error('Barba or GSAP not found');
     }
 });

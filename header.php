@@ -95,7 +95,8 @@
                         'container' => false,
                         'menu_class' => 'flex space-x-8',
                         'items_wrap' => '%3$s',
-                        'add_li_class'  => 'text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium px-3 py-2 transition'
+                        'add_li_class'  => 'text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium px-3 py-2 transition',
+                        'fallback_cb'   => 'press_nav_menu_fallback'
                     ));
                     ?>
                 </div>
@@ -118,7 +119,7 @@
     </nav>
 
     <!-- Main Layout Wrapper -->
-    <main id="barba-wrapper">
+    <main data-barba="wrapper">
         <?php
             $ns = 'home';
             if (is_single()) {

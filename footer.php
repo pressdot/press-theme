@@ -36,6 +36,20 @@
         </div>
     </footer>
 
+    <!-- PJAX Loader (Crypto Theme) -->
+    <div id="pjax-loader" class="fixed inset-0 z-50 flex opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="loader-content">
+            <div class="crypto-coin">₿</div>
+            <div class="candlestick-container">
+                <div class="bg-emerald-500 rounded-sm animate-candlestick-1"></div>
+                <div class="bg-red-500 rounded-sm animate-candlestick-2"></div>
+                <div class="bg-emerald-500 rounded-sm animate-candlestick-3"></div>
+                <div class="bg-emerald-500 rounded-sm animate-candlestick-4"></div>
+            </div>
+            <span class="text-xs font-mono text-brand-400">SYNCING...</span>
+        </div>
+    </div>
+
     <?php wp_footer(); ?>
 </body>
 </html>

@@ -71,23 +71,7 @@
                     </div>
                 </div>
 
-                <!-- Author Box -->
-                <div class="mt-8 bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left">
-                    <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                        <?php echo get_avatar(get_the_author_meta('ID'), 80, '', '', array('class' => 'w-20 h-20 rounded-full border-4 border-slate-100 dark:border-slate-700')); ?>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">关于作者：<?php the_author(); ?></h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed">
-                            <?php echo get_the_author_meta('description'); ?>
-                        </p>
-                        <div class="flex justify-center sm:justify-start gap-3">
-                            <a href="#" class="text-slate-400 hover:text-brand-500 transition"><i class="fab fa-github text-lg"></i></a>
-                            <a href="#" class="text-slate-400 hover:text-brand-500 transition"><i class="fab fa-twitter text-lg"></i></a>
-                            <a href="#" class="text-slate-400 hover:text-brand-500 transition"><i class="fas fa-globe text-lg"></i></a>
-                        </div>
-                    </div>
-                </div>
+                <!-- Author Box Removed (Moved to Sidebar) -->
 
                 <!-- Post Navigation -->
                 <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
