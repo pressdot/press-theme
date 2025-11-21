@@ -118,8 +118,46 @@
         </div>
     </nav>
 
-    <!-- Main Layout Wrapper -->
-    <main data-barba="wrapper">
+    <!-- Search Modal -->
+    <div id="search-modal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" id="search-backdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-2xl mx-4 transform scale-95 transition-transform duration-300" id="search-content">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">搜索文章</h3>
+                    <button id="close-search" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <?php get_search_form(); ?>
+                <div class="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                    <p class="mb-2 font-medium">热门搜索:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900 hover:text-brand-600 dark:hover:text-brand-400 transition">Bitcoin</span>
+                        <span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900 hover:text-brand-600 dark:hover:text-brand-400 transition">AI</span>
+                        <span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900 hover:text-brand-600 dark:hover:text-brand-400 transition">Web3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main data-barba="wrapper" class="relative min-h-screen">
+        <!-- PJAX Loader (Scoped to Main) -->
+        <div class="pjax-loader absolute inset-0 z-30 flex items-start justify-center pt-32 bg-white/80 dark:bg-slate-900/90 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-0" id="pjax-loader">
+            <div class="sticky top-32">
+                <div class="flex items-end space-x-1 h-16">
+                    <div class="w-3 bg-brand-500 rounded-sm animate-candlestick-1"></div>
+                    <div class="w-3 bg-green-500 rounded-sm animate-candlestick-2"></div>
+                    <div class="w-3 bg-red-500 rounded-sm animate-candlestick-3"></div>
+                    <div class="w-3 bg-brand-600 rounded-sm animate-candlestick-4"></div>
+                </div>
+            </div>
+        </div>
+
         <?php
             $ns = 'home';
             if (is_single()) {

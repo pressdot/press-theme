@@ -14,7 +14,7 @@
     
     if ($hero_query->have_posts() && !empty($sticky)) :
         while ($hero_query->have_posts()) : $hero_query->the_post();
-            $thumb_url = press_get_post_thumbnail_url(get_the_ID(), 'full');
+            $thumb_url = press_get_post_thumbnail_url(get_the_ID(), 'hero');
     ?>
     <div class="relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div class="absolute inset-0">
@@ -90,7 +90,7 @@
                 ?>
                 <!-- Article Card -->
                 <article class="card-hover-effect group bg-white dark:bg-slate-800 rounded-2xl shadow-sm transition duration-300 border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col sm:flex-row">
-                    <div class="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden">
+                    <div class="sm:w-1/3 h-48 sm:h-full min-h-[200px] relative overflow-hidden">
                             <div class="absolute inset-0 bg-indigo-900/20 group-hover:bg-transparent transition z-10"></div>
                             <img src="<?php echo esc_attr($thumb_url); ?>" alt="<?php the_title(); ?>" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
                     </div>

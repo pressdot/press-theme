@@ -187,10 +187,104 @@ function press_customize_register($wp_customize) {
 }
 add_action('customize_register', 'press_customize_register');
 
+// Helper: Resize Image on the Fly
+function press_resize_image($url, $width, $height, $crop = true) {
+    if (!$url) return $url;
+
+    // Get the upload directory paths
+    $upload_info = wp_upload_dir();
+    $upload_dir = $upload_info['basedir'];
+    $upload_url = $upload_info['baseurl'];
+
+    // Normalize URLs to handle http/https mismatches
+    $current_url_scheme = parse_url($url, PHP_URL_SCHEME);
+    $upload_url_scheme = parse_url($upload_url, PHP_URL_SCHEME);
+    
+    $url_clean = str_replace($current_url_scheme . '://', '', $url);
+    $upload_url_clean = str_replace($upload_url_scheme . '://', '', $upload_url);
+
+    // Convert URL to local path
+    if (strpos($url_clean, $upload_url_clean) === false) return $url; // External image
+    
+    $rel_path = str_replace($upload_url_clean, '', $url_clean);
+    // Remove any leading slash if present to avoid double slashes
+    $rel_path = ltrim($rel_path, '/');
+    
+    $img_path = $upload_dir . '/' . $rel_path;
+
+    // Check if file exists
+    if (!file_exists($img_path)) return $url;
+
+    // Get file info
+    $info = pathinfo($img_path);
+    $ext = $info['extension'];
+    $dst_rel_path = str_replace('.' . $ext, '', $rel_path);
+    $dest_file_name = "{$dst_rel_path}-{$width}x{$height}.{$ext}";
+    $dest_path = $upload_dir . '/' . $dest_file_name;
+    $dest_url = $upload_url . '/' . $dest_file_name;
+
+    // Return cached image if exists AND dimensions match
+    if (file_exists($dest_path)) {
+        $cached_dims = @getimagesize($dest_path);
+        if ($cached_dims && $cached_dims[0] == $width && $cached_dims[1] == $height) {
+            return $dest_url . '?v=' . filemtime($dest_path);
+        }
+    }
+
+    // Resize image
+    $image = wp_get_image_editor($img_path);
+    if (!is_wp_error($image)) {
+        $dims = $image->get_size();
+        $orig_w = $dims['width'];
+        $orig_h = $dims['height'];
+
+        // If image is smaller than target, we might need to upscale
+        // WP's resize() doesn't upscale by default. We need to handle this.
+        if ($orig_w < $width || $orig_h < $height) {
+            // Calculate aspect ratios
+            $src_ratio = $orig_w / $orig_h;
+            $dst_ratio = $width / $height;
+
+            // Determine resize dimensions to cover the target area
+            if ($src_ratio > $dst_ratio) {
+                // Source is wider than target: resize by height
+                $new_h = $height;
+                $new_w = $height * $src_ratio;
+            } else {
+                // Source is taller/same as target: resize by width
+                $new_w = $width;
+                $new_h = $width / $src_ratio;
+            }
+            
+            // Force resize (upscale)
+            add_filter('image_resize_dimensions', 'press_force_upscale_dimensions', 10, 6);
+            $image->resize($new_w, $new_h, false);
+            remove_filter('image_resize_dimensions', 'press_force_upscale_dimensions', 10);
+            
+            // Then crop to exact target
+            $image->crop(0, 0, $width, $height);
+        } else {
+            // Normal resize/crop for larger images
+            $image->resize($width, $height, $crop);
+        }
+
+        $image->set_quality(90);
+        $image->save($dest_path);
+        return $dest_url . '?v=' . time();
+    }
+
+    return $url;
+}
+
+// Helper: Force Upscale Dimensions
+function press_force_upscale_dimensions($payload, $orig_w, $orig_h, $dest_w, $dest_h, $crop) {
+    return array(0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
+}
+
 // Helper: Get Post Thumbnail URL with Fallback
 function press_get_post_thumbnail_url($post_id, $size = 'full') {
     // 1. Check for Featured Image
-    $thumb_url = get_the_post_thumbnail_url($post_id, $size);
+    $thumb_url = get_the_post_thumbnail_url($post_id, 'full'); // Always get full first
     
     // 2. Check for Customizer Default Image
     if (!$thumb_url) {
@@ -200,6 +294,17 @@ function press_get_post_thumbnail_url($post_id, $size = 'full') {
     // 3. Fallback to SVG
     if (!$thumb_url) {
         $thumb_url = press_get_random_svg();
+    } else {
+        // Resize if it's a real image (not SVG) and size is specified
+        if (strpos($thumb_url, 'data:image') === false) {
+            if ($size === 'large') {
+                // Card size
+                $thumb_url = press_resize_image($thumb_url, 800, 500, true);
+            } elseif ($size === 'hero') {
+                // Hero size
+                $thumb_url = press_resize_image($thumb_url, 1200, 600, true);
+            }
+        }
     }
     
     return $thumb_url;

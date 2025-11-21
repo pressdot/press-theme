@@ -27,6 +27,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Search Modal Logic ---
+    const searchBtn = document.querySelector('.fa-search')?.closest('button');
+    const searchModal = document.getElementById('search-modal');
+    const closeSearchBtn = document.getElementById('close-search');
+    const searchBackdrop = document.getElementById('search-backdrop');
+    const searchContent = document.getElementById('search-content');
+    const searchInput = searchModal ? searchModal.querySelector('input[type="search"]') : null;
+
+    function openSearch() {
+        if (!searchModal) return;
+        searchModal.classList.remove('opacity-0', 'pointer-events-none');
+        searchContent.classList.remove('scale-95');
+        searchContent.classList.add('scale-100');
+        setTimeout(() => searchInput?.focus(), 100);
+    }
+
+    function closeSearch() {
+        if (!searchModal) return;
+        searchModal.classList.add('opacity-0', 'pointer-events-none');
+        searchContent.classList.remove('scale-100');
+        searchContent.classList.add('scale-95');
+    }
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openSearch();
+        });
+    }
+
+    if (closeSearchBtn) closeSearchBtn.addEventListener('click', closeSearch);
+    if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchModal && !searchModal.classList.contains('opacity-0')) {
+            closeSearch();
+        }
+    });
+
     // --- Barba.js Logic ---
     if (typeof barba !== 'undefined' && typeof gsap !== 'undefined') {
 
@@ -68,21 +108,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // PJAX Loader Hooks
+        const loader = document.getElementById('pjax-loader');
+
         barba.hooks.before(() => {
             document.body.classList.add('is-loading');
+            if (loader) loader.classList.remove('opacity-0');
         });
 
         barba.hooks.after(() => {
             // Small delay to let the new content settle and show animation
             setTimeout(() => {
                 document.body.classList.remove('is-loading');
+                if (loader) loader.classList.add('opacity-0');
                 window.scrollTo(0, 0);
             }, 600); // Increased delay for visibility
 
-            // Re-bind Dark Mode toggle if it was replaced
+            // Re-bind Dark Mode toggle if it was replaced (because it's outside container but good practice)
             const newToggleBtn = document.getElementById('theme-toggle');
             if (newToggleBtn) {
-                // Clone to remove old listeners
+                // Clone to remove old listeners to prevent duplicates if re-binding
                 const freshBtn = newToggleBtn.cloneNode(true);
                 newToggleBtn.parentNode.replaceChild(freshBtn, newToggleBtn);
 
@@ -93,6 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     body.classList.toggle('dark');
                     localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
                 });
+            }
+
+            // Re-bind Search Button if needed (it's in header so it persists, but just in case)
+            const newSearchBtn = document.querySelector('.fa-search')?.closest('button');
+            if (newSearchBtn) {
+                // Remove old listeners not easily possible without named functions, 
+                // but since header persists, we don't strictly need to re-bind unless header is reloaded.
+                // For now, assuming header is static.
             }
         });
     } else {
